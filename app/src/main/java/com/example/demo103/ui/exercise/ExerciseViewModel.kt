@@ -31,12 +31,13 @@ class ExerciseViewModel(
 //    update
 //    fire-and-forget work
 
-    fun searchExercise(searchQuery: String ): Flow<List<ExerciseEntity>> =  repository.searchExercises(searchQuery)
+    fun searchExercise(searchQuery: String ): Flow<List<ExerciseEntity>> {
+        return repository.searchExercises(searchQuery)
+    }
 
-    fun getExerciseByCategory(category:String ): Flow<List<ExerciseEntity>> =
-            repository.getExerciseByCategory(category)
-
-
+    fun getExerciseByCategory(category:String ): Flow<List<ExerciseEntity>> {
+            return repository.getExerciseByCategory(category)
+}
 
     }
 

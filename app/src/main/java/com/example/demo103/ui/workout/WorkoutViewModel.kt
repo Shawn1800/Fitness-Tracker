@@ -15,9 +15,14 @@ class WorkoutViewModel (private val repository: WorkoutRepository): ViewModel(){
         }
     }
 
-    fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>> =repository.getWorkoutByDate(date)
+    fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>> {
+        return repository.getWorkoutByDate(date)
+    }
 
-    fun getWorkoutByExerciseId(exerciseId:Int): Flow<List<WorkoutEntryEntity>> =repository.getWorkoutByExercise(exerciseId)
+
+    fun getWorkoutByExerciseId(exerciseId:Int): Flow<List<WorkoutEntryEntity>> {
+        return repository.getWorkoutByExercise(exerciseId)
+    }
 
     fun deleteWorkoutById(id:Int){
         viewModelScope.launch{
