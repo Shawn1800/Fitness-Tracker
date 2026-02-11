@@ -5,34 +5,70 @@ import androidx.lifecycle.viewModelScope
 import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ExerciseViewModel(
     private val repository : ExerciseRepository
 ): ViewModel() {
+// ui input
+    private val searchQuery = MutableStateFlow("")
 
-    val allExercises = repository.getAllExercises()
-        .stateIn(viewModelScope, //convert flow to state flow so that compose can take in values
-            SharingStarted.Lazily,emptyList())//
+    private val selectedCategory = MutableStateFlow<String?>(null)
+// ui state
+    private val _isSearching = MutableStateFlow(false) //
+    
+    val isSearching : StateFlow<Boolean> = _isSearching.asStateFlow() //to create state flow from mutable state flow, so that compose can take in values
 
-    fun addExercise(exercise: ExerciseEntity){  //launch coroutine to insert exercise
-        //viewModelScope is a coroutine scope that is tied to the lifecycle of the ViewModel
-        //it will be canceled when the ViewModel is cleared
-        //viewModelscope is only use when it collects something
-        viewModelScope.launch {
-            repository.insertExercise(exercise)
+    val exercises : StateFlow<List<ExerciseEntity>> =
+        combine(
+            searchQuery.debounce(300),
+            selectedCategory
+        ) { query, category ->
+            query to category
         }
-    }
-//    viewmoelscope.launch is for:
-//    insert
-//    delete
-//    update
-//    fire-and-forget work
+            .onEach { _isSearching.value=true }
+            .flatMapLatest { (query,category)->
+                when{
 
-    fun searchExercise(searchQuery: String ): Flow<List<ExerciseEntity>> {
-        return repository.searchExercises(searchQuery)
+                    query.isNotBlank() && category != null ->
+                        repository.searchExerciseByCategory(query, category)
+
+                    query.isNotBlank() ->
+                        repository.searchExercises(query)
+
+                    category != null ->
+                        repository.getExerciseByCategory(category)
+
+                    else ->
+                        repository.getAllExercises()
+                }
+            }
+            .onEach { _isSearching.value = false }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                emptyList()
+            )
+
+
+//
+//    fun clearSelection() {
+//        _selectedExercise.value = null
+//    }
+
+
+
+    fun searchExercise(query: String ): Flow<List<ExerciseEntity>> {
+        return repository.searchExercises(query)
     }
 
     fun getExerciseByCategory(category:String ): Flow<List<ExerciseEntity>> {

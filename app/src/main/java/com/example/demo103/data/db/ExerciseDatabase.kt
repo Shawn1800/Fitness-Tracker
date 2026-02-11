@@ -7,7 +7,9 @@ import com.example.demo103.data.entity.WorkoutEntryEntity
 import com.example.demo103.data.dao.ExerciseDao
 import com.example.demo103.data.dao.WorkoutEntryEntityDao
 
-@Database(entities = [ExerciseEntity::class, WorkoutEntryEntity::class],
+@Database(entities =
+    [ExerciseEntity::class,
+    WorkoutEntryEntity::class],
     version = 1,
     exportSchema = true)
 
