@@ -1,10 +1,8 @@
-package com.example.demo103.ui.workout
+package com.example.demo103.feature.log_workout
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.demo103.data.repository.ExerciseRepository
 import com.example.demo103.data.repository.WorkoutRepository
-import com.example.demo103.ui.exercise.ExerciseViewModel
 
 class WorkoutViewModelFactory (private val repository: WorkoutRepository
 ): ViewModelProvider.Factory

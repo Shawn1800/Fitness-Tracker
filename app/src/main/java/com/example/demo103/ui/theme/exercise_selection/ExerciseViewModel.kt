@@ -1,4 +1,4 @@
-package com.example.demo103.ui.exercise
+package com.example.demo103.feature.exercise_selection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class ExerciseViewModel(
     private val repository : ExerciseRepository

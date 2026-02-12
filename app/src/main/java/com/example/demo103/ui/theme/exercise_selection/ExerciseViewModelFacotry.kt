@@ -1,4 +1,4 @@
-package com.example.demo103.ui.exercise
+package com.example.demo103.feature.exercise_selection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
