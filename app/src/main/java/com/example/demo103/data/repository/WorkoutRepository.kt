@@ -8,14 +8,16 @@ import com.example.demo103.data.dao.WorkoutEntryEntityDao
 import kotlinx.coroutines.flow.Flow
 
 class WorkoutRepository(private val workoutEntryEntityDao: WorkoutEntryEntityDao) {
-
-
-
-    suspend fun insertWorkoutEntry(entry : WorkoutEntryEntity)=workoutEntryEntityDao.insertWorkoutEntry(entry)
-
-    fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>> = workoutEntryEntityDao.getWorkoutForDate(date)
-
-    fun getWorkoutByExercise(exerciseId: Int): Flow<List<WorkoutEntryEntity>> = workoutEntryEntityDao.getWorkoutByExercise(exerciseId)
-
-    suspend fun deleteEntryById(id:Int) = workoutEntryEntityDao.deleteEntryById(id)
+    suspend fun insertWorkoutEntry(entry : WorkoutEntryEntity){
+        workoutEntryEntityDao.insertWorkoutEntry(entry)
+    }
+    fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>> {
+        return workoutEntryEntityDao.getWorkoutForDate(date)
+    }
+    fun getWorkoutByExercise(exerciseId: Int): Flow<List<WorkoutEntryEntity>> {
+        return workoutEntryEntityDao.getWorkoutByExercise(exerciseId)
+    }
+    suspend fun deleteEntryById(id:Int) {
+        workoutEntryEntityDao.deleteEntryById(id)
+    }
 }

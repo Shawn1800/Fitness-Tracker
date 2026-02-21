@@ -57,7 +57,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
-    val room_version = "2.6.1" // Note: 2.6.1 is the current stable release
+    val room_version = "2.8.0" // Note: 2.6.1 is the current stable release
     implementation("androidx.room:room-ktx:$room_version")
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
