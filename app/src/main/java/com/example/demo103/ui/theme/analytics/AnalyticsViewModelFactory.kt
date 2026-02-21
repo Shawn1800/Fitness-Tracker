@@ -1,4 +1,4 @@
-package com.example.demo103.feature.analytics
+package com.example.demo103.ui.theme.analytics
 
 class AnalyticsViewModelFactory {
 }

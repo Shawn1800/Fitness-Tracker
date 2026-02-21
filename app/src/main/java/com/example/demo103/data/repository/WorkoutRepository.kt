@@ -12,7 +12,7 @@ class WorkoutRepository(private val workoutEntryEntityDao: WorkoutEntryEntityDao
         workoutEntryEntityDao.insertWorkoutEntry(entry)
     }
     fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>> {
-        return workoutEntryEntityDao.getWorkoutForDate(date)
+        return workoutEntryEntityDao.getWorkoutByDate(date)
     }
     fun getWorkoutByExercise(exerciseId: Int): Flow<List<WorkoutEntryEntity>> {
         return workoutEntryEntityDao.getWorkoutByExercise(exerciseId)

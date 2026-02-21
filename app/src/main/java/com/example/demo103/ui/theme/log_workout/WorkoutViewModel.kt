@@ -1,4 +1,4 @@
-package com.example.demo103.feature.log_workout
+package com.example.demo103.ui.theme.log_workout
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

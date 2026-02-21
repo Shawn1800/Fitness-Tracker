@@ -15,7 +15,7 @@ interface WorkoutEntryEntityDao{
     suspend fun insertWorkoutEntry(entry: WorkoutEntryEntity) //recheck
 
     @Query("SELECT * FROM workout_entry WHERE date = :date")
-    fun getWorkoutForDate(date:Long): Flow<List<WorkoutEntryEntity>>
+    fun getWorkoutByDate(date:Long): Flow<List<WorkoutEntryEntity>>
 
     @Query("SELECT * FROM workout_entry WHERE exercise_id = :exerciseId")
     fun getWorkoutByExercise(exerciseId: Int): Flow<List<WorkoutEntryEntity>>

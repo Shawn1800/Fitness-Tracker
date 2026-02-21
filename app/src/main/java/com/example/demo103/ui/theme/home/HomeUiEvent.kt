@@ -1,4 +1,6 @@
 package com.example.demo103.ui.theme.home
 
-class HomeUiEvent {
+
+sealed interface HomeUiEvent {
+    data object NavigateToExerciseSelection : HomeUiEvent
 }

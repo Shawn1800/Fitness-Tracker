@@ -1,4 +1,4 @@
-package com.example.demo103.feature.home
+package com.example.demo103.ui.theme.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,46 +6,62 @@ import androidx.lifecycle.viewModelScope
 import com.example.demo103.data.entity.WorkoutEntryEntity
 
 import com.example.demo103.data.repository.WorkoutRepository
+import com.example.demo103.ui.theme.exercise_selection.ExerciseEvent
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
 
 class HomeViewModel(
     private val repository: WorkoutRepository
 ) : ViewModel() {
+    private val _state = MutableStateFlow(HomeState())
+    val state: StateFlow<HomeState> = _state.asStateFlow()  //make it read only
+    private val _uiEvent = MutableSharedFlow<HomeUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+    private var workoutJob: Job? = null
 
-    // Currently selected date (timestamp, e.g., start of day)
-    private val _selectedDate = MutableStateFlow<Long?>(null)
-    val selectedDate: StateFlow<Long?> = _selectedDate.asStateFlow()
 
-    // Workouts for the selected date
-    val workoutsForSelectedDate: StateFlow<List<WorkoutEntryEntity>> =
-        _selectedDate
-            .filterNotNull()
-            .flatMapLatest { date ->
-                repository.getWorkoutByDate(date)
+    init {
+        // initial date = today
+        val today = LocalDate.now()
+        onEvent(HomeEvent.OnDateSelected(today))
+    }
+    fun onEvent(event: HomeEvent) {
+        when (event) {
+
+            is HomeEvent.OnDateSelected -> {
+                val millis = event.date
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+
+                _state.update {
+                    it.copy(
+                        selectedDate = event.date,
+                        selectedDateMillis = millis
+                    )
+                }
+
+                observeWorkoutsForDate(millis)
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Lazily,
-                initialValue = emptyList()
-            )
+            is HomeEvent.OnAddWorkoutClick -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(HomeUiEvent.NavigateToExerciseSelection)
+                }
 
-    // Called from HomeFragment when user picks a date from calendar
-    fun onDateSelected(date: Long) {
-        _selectedDate.value = date
+            }
+    }
+}
+    private fun observeWorkoutsForDate(dateMillis: Long) {
+        workoutJob?.cancel()
+        workoutJob = repository.getWorkoutByDate(dateMillis)
+            .onEach { workouts ->
+                _state.update { it.copy(workouts = workouts) }
+            }
+            .launchIn(viewModelScope)
     }
 
-    // Add a new entry (called after logging weight/reps, if you want to insert directly)
-    fun addEntry(entry: WorkoutEntryEntity) {
-        viewModelScope.launch {
-            repository.insertWorkoutEntry(entry)
-        }
-    }
 
-    // Delete an entry from the list
-    fun deleteEntry(id: Int) {
-        viewModelScope.launch {
-            repository.deleteEntryById(id)
-        }
-    }
 }

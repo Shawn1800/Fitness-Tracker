@@ -1,9 +1,8 @@
-package com.example.demo103.feature.home
+package com.example.demo103.ui.theme.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.demo103.data.repository.WorkoutRepository
-import com.example.demo103.feature.exercise_selection.ExerciseViewModel
 
 class HomeViewModelFactory(
     private val repository: WorkoutRepository

@@ -1,124 +1,303 @@
 package com.example.demo103.ui.theme.home
 
-import android.R.attr.padding
-import android.icu.util.DateInterval
-import android.text.format.DateUtils.isToday
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.util.Date
+import java.time.format.TextStyle
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import com.example.demo103.ui.theme.exercise_selection.ExerciseEvent
+import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModel
 
+// ─── Theme Constants ──────────────────────────────────────────────────────────
+private object AppColors {
+    val Background = Color.Black
+    val Surface = Color.DarkGray
+    val SurfaceDimmed = Color.DarkGray.copy(alpha = 0.5f)
+    val Primary = Color(0xFF6200EE)
+    val Today = Color(0xFF03DAC5)
+    val TextPrimary = Color.White
+    val TextSecondary = Color.Gray
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier= Modifier,
+    homeViewModel: HomeViewModel = viewModel(),
+    onNavigateToExerciseSelection: () -> Unit,
+
+) {
+    val state by homeViewModel.state.collectAsState()
+
+
+    // Collect one-shot navigation events
+    LaunchedEffect(Unit) {
+        homeViewModel.uiEvent.collect { event ->
+            when (event) {
+                is HomeUiEvent.NavigateToExerciseSelection -> {
+                    onNavigateToExerciseSelection()
+                }
+            }
+        }
+    }
+
+    Scaffold(
+        containerColor = AppColors.Background,
+        floatingActionButton = {
+            AddWorkoutFab(
+                onClick = {
+                    homeViewModel.onEvent(HomeEvent.OnAddWorkoutClick) }
+            )
+        }
+    ) { paddingValues ->
+        HomeContent(
+            state = state,
+            paddingValues = paddingValues,
+            onDateSelected = { date -> homeViewModel.onEvent(HomeEvent.OnDateSelected(date)) }
+        )
+    }
+}
+
+// ─── Content ──────────────────────────────────────────────────────────────────
+
+@Composable
+private fun HomeContent(
+    state: HomeState,
+    paddingValues: PaddingValues,
+    onDateSelected: (LocalDate) -> Unit
 ) {
     val currentDate = LocalDate.now()
+    val monthName = currentDate.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
 
-    val monthName = currentDate.month.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
-    Surface(
-        modifier=Modifier.fillMaxSize(),
-        color = Color.Black
-        ) {
-Column(
-    modifier= Modifier.fillMaxSize()
-        .background(Color.Black)
-){
-    Box(
-        modifier=Modifier
+    Column(
+        modifier = Modifier
             .fillMaxSize()
-        .padding(top = 30.dp, start = 8.dp, end = 8.dp),
-        contentAlignment = Alignment.TopStart
+            .background(AppColors.Background)
+            .padding(paddingValues)
+    ) {
+        MonthHeader(monthName = monthName)
 
-    ){
-    Text(
-        text=monthName,
-        color = Color.White,
-        fontStyle = FontStyle.Normal,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
-    )
-}
+        Spacer(modifier = Modifier.height(16.dp))
 
-DateRowList(
+        WeeklyCalendar(
+            selectedDate = currentDate,
+            onDateSelected = onDateSelected
+        )
 
-)
+        Spacer(modifier = Modifier.height(16.dp))
 
-}
+        when {
+            state.isLoading -> LoadingIndicator()
+            state.errorMessage != null -> ErrorMessage(message = state.errorMessage)
+            state.workouts.isEmpty() -> EmptyWorkoutsMessage()
+            else -> WorkoutList(workouts = state.workouts)
+        }
     }
-
 }
+
+// ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun DateRowList(){
-    val dateList = remember{
-        (7 downTo 0).map{LocalDate.now().minusDays(it.toLong()) }
-    }
-
-    LazyRow(
+private fun MonthHeader(monthName: String) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-
+            .padding(top = 30.dp, start = 16.dp, end = 16.dp),
+        contentAlignment = Alignment.TopStart
     ) {
-        items(
-            dateList
-        ) { date ->
+        Text(
+            text = monthName,
+            color = AppColors.TextPrimary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp
+        )
+    }
+}
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+
+@Composable
+private fun WeeklyCalendar(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    val totalWeeks = 500
+    val pagerState = rememberPagerState(
+        pageCount = { totalWeeks },
+        initialPage = totalWeeks - 1  // Start at current week; past weeks to the left
+    )
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) { page ->
+        val weeksAgo = (totalWeeks - 1) - page
+        val mondayOfWeek = LocalDate.now()
+            .minusWeeks(weeksAgo.toLong())
+            .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+        WeekRow(
+            startDate = mondayOfWeek,
+            selectedDate = selectedDate,
+            onDateSelected = onDateSelected
+        )
+    }
+}
+
+@Composable
+private fun WeekRow(
+    startDate: LocalDate,
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        for (i in 0..6) {
+            val date = startDate.plusDays(i.toLong())
             DateItem(
-                day = date.dayOfMonth.toString(),
-                isToday = date == LocalDate.now()
+                date = date,
+                isToday = date == LocalDate.now(),
+                isSelected = date == selectedDate,
+                isFuture = date.isAfter(LocalDate.now()),
+                onDateSelected = onDateSelected
             )
+        }
+    }
+}
+@Composable
+private fun DateItem(
+    date: LocalDate,
+    isToday: Boolean,
+    isSelected: Boolean,
+    isFuture: Boolean,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    val dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val dayNumber = date.dayOfMonth.toString()
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .alpha(if (isFuture) 0.3f else 1f)
+            .clickable(enabled = !isFuture) { onDateSelected(date) }
+    ) {
+        Text(
+            text = dayName,
+            color = AppColors.TextSecondary,
+            fontSize = 12.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier.size(45.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = when {
+                    isSelected -> AppColors.Primary        // Purple  = selected by user
+                    isToday -> AppColors.Today             // Teal    = today (not selected)
+                    isFuture -> AppColors.SurfaceDimmed   // Dimmed  = future
+                    else -> AppColors.Surface             // Grey    = past
+                }
+            )
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = dayNumber,
+                    color = AppColors.TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+// ─── FAB ──────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun AddWorkoutFab(onClick: ()->Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        containerColor = AppColors.Primary
+    ) {
+        Text("+", fontSize = 24.sp, color = AppColors.TextPrimary)
+    }
+}
+
+// ─── Workout List ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun WorkoutList(workouts: List<com.example.demo103.data.entity.WorkoutEntryEntity>) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        workouts.forEach { workout ->
+            WorkoutItem(workout = workout)
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun DateItem(day: String, isToday: Boolean) {
+private fun WorkoutItem(workout: com.example.demo103.data.entity.WorkoutEntryEntity) {
     Card(
-        modifier = Modifier.size(60.dp),
-        colors = CardDefaults.cardColors(
-            // Highlight today's date with a different color
-            containerColor = if (isToday) Color(0xFF6200EE) else Color.DarkGray
-        )
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = day,
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
-            )
-        }
+        Text(
+            text = workout.toString(), // Replace with your actual fields
+            color = AppColors.TextPrimary,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
+// ─── Empty / Loading / Error States ──────────────────────────────────────────
+
+@Composable
+private fun LoadingIndicator() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = AppColors.Primary)
+    }
+}
+
+@Composable
+private fun EmptyWorkoutsMessage() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "No workouts logged for this day",
+            color = AppColors.TextSecondary,
+            fontSize = 16.sp
+        )
+    }
+}
+
+@Composable
+private fun ErrorMessage(message: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = message,
+            color = Color.Red,
+            fontSize = 16.sp
+        )
+    }
+}

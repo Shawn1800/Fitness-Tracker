@@ -1,4 +1,4 @@
-package com.example.demo103.feature.exercise_selection
+package com.example.demo103.ui.theme.exercise_selection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -7,7 +7,7 @@ import com.example.demo103.data.repository.ExerciseRepository
 //A Factory helps recreate the ViewModel with the same parameters
 // after a configuration change, ensuring seamless user experience
 
-class ExerciseViewModelFacotry (
+class ExerciseViewModelFactory (
     private val repository: ExerciseRepository): ViewModelProvider.Factory{
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

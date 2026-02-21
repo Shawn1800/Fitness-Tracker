@@ -1,4 +1,168 @@
 package com.example.demo103.ui.theme.exercise_selection
 
-class ExerciseScreen {
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.demo103.data.entity.ExerciseEntity
+import com.example.demo103.di.Demo103App
+import kotlin.collections.List
+
+private object AppColors {
+    val Background = Color.Black
+    val Surface = Color.DarkGray
+    val Primary = Color(0xFF6200EE)
+    val TextPrimary = Color.White
+    val TextSecondary = Color.Gray
+    val ChipSelected = Color(0xFF6200EE)
+    val ChipUnselected = Color.DarkGray
+}
+@Composable
+fun ExerciseSelectionScreen(
+    viewModel: ExerciseViewModel = viewModel(),
+
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    ExerciseSelectionContent(
+        state = state,
+        onEvent = {viewModel.onEvent(it)}
+    )
+}
+
+@Composable
+fun ExerciseSelectionContent(
+    state: ExerciseState,
+    onEvent: (ExerciseEvent) -> Unit
+) {
+    Search(
+        query = state.searchQuery,
+        selectedCategory = state.selectedCategory,
+        isSearching = state.isSearching,
+        exercises = state.exercises,
+        onQueryChange = {
+            onEvent(ExerciseEvent.OnSearchQueryChange(it))
+        },
+        onCategorySelected = {
+            onEvent(ExerciseEvent.OnSelectCategory(it))
+        },
+        onCategoryCleared = {
+            onEvent(ExerciseEvent.OnClearCategory)
+        }
+    )
+}
+
+
+@Composable
+fun Search(
+    query: String,
+    selectedCategory: String?,
+    isSearching: Boolean,
+    exercises: List<ExerciseEntity>,
+    onQueryChange: (String) -> Unit,
+    onCategorySelected: (String) -> Unit,
+    onCategoryCleared: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors.Background)
+            .padding(top = 30.dp)
+    ) {
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search exercises") },
+            leadingIcon = {
+                Icon(Icons.Default.Search, contentDescription = null)
+            },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+                    }
+                }
+            }
+        )
+
+
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        when {
+            isSearching -> LoadingIndicator()
+            exercises.isEmpty() -> EmptyMessage()
+            else -> ExerciseList(
+                exercises = exercises
+            )
+        }
+    }
+}
+@Composable
+private fun LoadingIndicator() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = AppColors.Primary)
+    }
+}
+
+@Composable
+private fun EmptyMessage() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "No workouts logged for this day",
+            color =AppColors.TextSecondary,
+            fontSize = 16.sp
+        )
+    }
+}
+
+@Composable
+private fun ErrorMessage(message: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = message,
+            color = Color.Red,
+            fontSize = 16.sp
+        )
+    }
+}
+@Composable
+fun ExerciseList(
+    exercises: List<ExerciseEntity>
+) {
+    LazyColumn {
+        items(exercises) { exercise ->
+            Text(
+                text = exercise.exerciseName,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
 }
