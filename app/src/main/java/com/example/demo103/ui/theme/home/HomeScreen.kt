@@ -1,8 +1,15 @@
 package com.example.demo103.ui.theme.home
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +27,14 @@ import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import com.example.demo103.data.entity.ExerciseEntity
+import com.example.demo103.data.entity.WorkoutEntryEntity
+import com.example.demo103.data.entity.WorkoutWithExercise
 import com.example.demo103.ui.theme.exercise_selection.ExerciseEvent
 import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModel
 
@@ -30,13 +44,24 @@ private object AppColors {
     val Surface = Color.DarkGray
     val SurfaceDimmed = Color.DarkGray.copy(alpha = 0.5f)
     val Primary = Color(0xFF6200EE)
-    val Today = Color(0xFF03DAC5)
+    val Today = Color(0xFF311B92)
     val TextPrimary = Color.White
     val TextSecondary = Color.Gray
+
 }
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+data class WorkoutExerciseUi(
+    val exercise: ExerciseEntity,
+    val isExpanded: Boolean = false,
+    val sets: List<WorkoutSetUi> = listOf(WorkoutSetUi())
+)
 
+data class WorkoutSetUi(
+    val weight: Double=0.0,
+    val reps: Int =0
+)
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
@@ -44,7 +69,6 @@ fun HomeScreen(
 
 ) {
     val state by homeViewModel.state.collectAsState()
-
 
     // Collect one-shot navigation events
     LaunchedEffect(Unit) {
@@ -75,15 +99,24 @@ fun HomeScreen(
 }
 
 // ─── Content ──────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HomeContent(
     state: HomeState,
     paddingValues: PaddingValues,
     onDateSelected: (LocalDate) -> Unit
 ) {
-    val currentDate = LocalDate.now()
-    val monthName = currentDate.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val totalWeeks = 500
+    val pagerState = rememberPagerState(
+        pageCount = { totalWeeks },
+        initialPage = totalWeeks - 1
+    )
+
+    // 2. Calculate the dynamic month name based on the current page
+    val currentMonthName = remember(pagerState.currentPage) {
+        val weeksAgo = (totalWeeks - 1) - pagerState.currentPage
+        val dateInDisplayedWeek = LocalDate.now().minusWeeks(weeksAgo.toLong())
+        dateInDisplayedWeek.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    }
 
     Column(
         modifier = Modifier
@@ -91,12 +124,14 @@ private fun HomeContent(
             .background(AppColors.Background)
             .padding(paddingValues)
     ) {
-        MonthHeader(monthName = monthName)
+        MonthHeader(monthName = currentMonthName)
 
         Spacer(modifier = Modifier.height(16.dp))
 
         WeeklyCalendar(
-            selectedDate = currentDate,
+            pagerState = pagerState,
+            totalWeeks=totalWeeks,
+            selectedDate = state.selectedDate,
             onDateSelected = onDateSelected
         )
 
@@ -112,7 +147,6 @@ private fun HomeContent(
 }
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
-
 @Composable
 private fun MonthHeader(monthName: String) {
     Box(
@@ -133,14 +167,11 @@ private fun MonthHeader(monthName: String) {
 
 @Composable
 private fun WeeklyCalendar(
+    pagerState: PagerState,
+    totalWeeks:Int,
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit
 ) {
-    val totalWeeks = 500
-    val pagerState = rememberPagerState(
-        pageCount = { totalWeeks },
-        initialPage = totalWeeks - 1  // Start at current week; past weeks to the left
-    )
 
     HorizontalPager(
         state = pagerState,
@@ -194,21 +225,18 @@ private fun DateItem(
 ) {
     val dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
     val dayNumber = date.dayOfMonth.toString()
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .alpha(if (isFuture) 0.3f else 1f)
             .clickable(enabled = !isFuture) { onDateSelected(date) }
     ) {
-        Text(
+        Text( // will remove this later and will make day names static
             text = dayName,
             color = AppColors.TextSecondary,
             fontSize = 12.sp
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Card(
             modifier = Modifier.size(45.dp),
             shape = RoundedCornerShape(12.dp),
@@ -231,7 +259,6 @@ private fun DateItem(
         }
     }
 }
-
 // ─── FAB ──────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -243,36 +270,116 @@ private fun AddWorkoutFab(onClick: ()->Unit) {
         Text("+", fontSize = 24.sp, color = AppColors.TextPrimary)
     }
 }
-
 // ─── Workout List ─────────────────────────────────────────────────────────────
+@Composable
+fun WorkoutList(
+    workouts: List<WorkoutWithExercise>,
+    modifier: Modifier = Modifier
+) {
+
+    val listState= rememberLazyListState()
+
+    LaunchedEffect(workouts.size) {
+    if (workouts.isEmpty()) {
+        listState.animateScrollToItem(workouts.lastIndex)
+    }}
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            items(
+                items = workouts,
+                key = { it.workoutEntry.entryId}  // helps Compose animate/recompose efficiently
+            ) {
+                WorkoutCard(it)
+            }
+        }
+    }
+
 
 @Composable
-private fun WorkoutList(workouts: List<com.example.demo103.data.entity.WorkoutEntryEntity>) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        workouts.forEach { workout ->
-            WorkoutItem(workout = workout)
-            Spacer(modifier = Modifier.height(8.dp))
+private fun WorkoutCard(
+    workout: WorkoutWithExercise,
+    modifier: Modifier = Modifier
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val cardHeight by animateDpAsState(
+        targetValue = if (expanded) 200.dp else 100.dp,
+
+    )
+
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "rotation"
+    )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(cardHeight)
+            .clickable{expanded =!expanded},
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left: Color accent bar
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(AppColors.Primary)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Middle: Exercise name + sets/reps
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = workout.exercise.exerciseName,
+                    color = AppColors.TextPrimary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "${workout.workoutEntry.weight} weight × ${workout.workoutEntry.reps} reps",
+                    color = AppColors.TextSecondary,
+                    fontSize = 13.sp
+                )
+            }
+
+            // Right: Weight badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(AppColors.Background.copy(alpha = 0.15f))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "${workout.workoutEntry.weight}kg",
+                    color = AppColors.Primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
 
-@Composable
-private fun WorkoutItem(workout: com.example.demo103.data.entity.WorkoutEntryEntity) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.Surface)
-    ) {
-        Text(
-            text = workout.toString(), // Replace with your actual fields
-            color = AppColors.TextPrimary,
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
-
 // ─── Empty / Loading / Error States ──────────────────────────────────────────
-
 @Composable
 private fun LoadingIndicator() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

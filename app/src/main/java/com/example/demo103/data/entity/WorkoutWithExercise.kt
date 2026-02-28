@@ -1,3 +1,13 @@
 package com.example.demo103.data.entity
 
-data class WorkoutWithExercise()
+import androidx.room.Embedded
+import androidx.room.Relation
+
+data class WorkoutWithExercise(
+    @Embedded val workoutEntry: WorkoutEntryEntity,
+    @Relation(
+        parentColumn = "exercise_id",
+        entityColumn = "exerciseId"
+    )
+    val exercise: ExerciseEntity
+)

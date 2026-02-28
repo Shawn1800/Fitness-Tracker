@@ -11,22 +11,23 @@ import kotlinx.coroutines.flow.Flow
 interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertExercises(exercises: List<ExerciseEntity>)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(exercises: List<ExerciseEntity>)
 
-    @Query("SELECt * FROM exercises")
+    @Query("SELECT * FROM exercises")
     fun getAllExercises(): Flow<List<ExerciseEntity>>
 
-    @Query("SELECT*FROM exercises WHERE exercise_name LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM exercises WHERE exercise_name LIKE '%' || :query || '%'")
     fun searchExercises(query: String): Flow<List<ExerciseEntity>> //edit flow
 
-    @Query("SELECT * FROM exercises WHERE category= :category")
+    @Query("SELECT * FROM exercises WHERE category = :category")
     fun getExerciseByCategory(category :String  ): Flow<List<ExerciseEntity>>
 
-    @Query("""SELECT * FROM exercises WHERE exercise_name LIKE '%'|| :query||'%0' AND category =:category""")
-        fun searchExerciseByCategory(
+    @Query("SELECT * FROM exercises WHERE exercise_name LIKE '%' || :query || '%' AND category = :category")
+    fun searchExerciseByCategory(
         query:String,
         category :String
-        ): Flow<List<ExerciseEntity>>
+    ): Flow<List<ExerciseEntity>>
 
 }
-

@@ -2,38 +2,42 @@ package com.example.demo103.ui.theme.exercise_selection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.repository.ExerciseRepository
-import com.example.demo103.ui.theme.home.HomeState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
 class ExerciseViewModel(
     private val repository : ExerciseRepository
 ): ViewModel() {
-
-// we dont use this here as we let the piplline handle search and category selection
-    // it does not work with flatmaplates and combine
-//    private val _exerciseState = MutableStateFlow(ExerciseState())
-//    val exercise_state: StateFlow<ExerciseState> = _exerciseState.asStateFlow()
+    //------------------------------------------------------------------------------------------//
+    // we don't use this here as we let the pipeline handle search and category selection
+    // it does not work with flat map latest and combine
+    // private val _exerciseState = MutableStateFlow(ExerciseState())
+    // val exercise_state: StateFlow<ExerciseState> = _exerciseState.asStateFlow()
+    //------------------------------------------------------------------------------------------//
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategory = MutableStateFlow<String?>(null)
     private val _isSearching = MutableStateFlow(false)
 
-    // ── UI State ──────────────────────────────────────────────────────────
-// 1. Create a flow for the filtered exercises based on search and category
+    private val _uiEvent = MutableSharedFlow<ExerciseUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
+
+    // ── UI State ──────────────────────────────────────────────────────────
+
+// 1. Create a flow for the filtered exercises based on search and category
     @OptIn(ExperimentalCoroutinesApi::class)
     private val filteredExercises = combine(_searchQuery.debounce(300), _selectedCategory) { query, category ->
         query to category
@@ -69,20 +73,32 @@ class ExerciseViewModel(
         initialValue = ExerciseState()
     )
 
-
     fun onEvent(event: ExerciseEvent) {
         when (event) {
             is ExerciseEvent.OnSearchQueryChange -> {
-                _searchQuery.value = event.query
+                _searchQuery.value = event.query            //value of the state becomes the query
             }
             is ExerciseEvent.OnSelectCategory -> {
-                _selectedCategory.value = event.category
+                _selectedCategory.value = event.category //value of the state becomes the category
             }
-            is ExerciseEvent.OnClearCategory -> _selectedCategory.value = null
+            is ExerciseEvent.OnClearCategory -> {
+                _selectedCategory.value = null //value of the state becomes null
+            }
+            // when i press onclick this runs
+            is ExerciseEvent.OnAddExercise->{
+                viewModelScope.launch {
+                    _uiEvent.emit(ExerciseUiEvent.AddExercise( exercise=event.exercise)
+                    )
+                }
+            }
+
+//            is ExerciseEvent.OnExerciseSelected->{
+//                viewModelScope.launch {
+//                    _uiEvent.emit(ExerciseUiEvent.ExerciseSelected(exercise = event.exercise))
+//                }
+//            }
+
         }
     }
 
-
     }
-
-

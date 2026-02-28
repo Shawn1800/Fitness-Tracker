@@ -1,6 +1,7 @@
 package com.example.demo103.ui.theme.home
 
 import com.example.demo103.data.entity.WorkoutEntryEntity
+import com.example.demo103.data.entity.WorkoutWithExercise
 import java.time.LocalDate
 
 data class HomeState (
@@ -8,5 +9,9 @@ data class HomeState (
     val selectedDateMillis: Long? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val workouts: List<WorkoutEntryEntity> = emptyList()
+    val workouts: List<WorkoutWithExercise> = emptyList(),
+
+
+    val workoutExerciseNoDb :List<WorkoutExerciseUi> = emptyList(), // workout car while editing
+    val isSavingNoDb : Boolean = false,
 )

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,7 +33,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             Demo103Theme {
 
-                val navController = rememberNavController() // ✅ CORRECT PLACE
+                val navController = rememberNavController()
+
+                val homeViewModel: HomeViewModel = viewModel(
+                    factory = HomeViewModelFactory(
+                        app.appContainer.workoutRepository
+                    )
+                )
 
                 NavHost(
                     navController = navController,
@@ -40,12 +47,6 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     composable("home") {
-                        val homeViewModel: HomeViewModel = viewModel(
-                            factory = HomeViewModelFactory(
-                                app.appContainer.workoutRepository
-                            )
-                        )
-
                         HomeScreen(
                             homeViewModel = homeViewModel,
                             onNavigateToExerciseSelection = {
@@ -55,20 +56,24 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("exercise_selection") {
-                        val app = LocalContext.current.applicationContext as Demo103App
-
                         val viewModel: ExerciseViewModel = viewModel(
                             factory = ExerciseViewModelFactory(
                                 app.appContainer.exerciseRepository
                             )
                         )
-
-                        ExerciseSelectionScreen(viewModel = viewModel)
+                        ExerciseSelectionScreen(
+                            viewModel = viewModel,
+                            homeViewModel = homeViewModel,
+                            navController = {
+                                navController.popBackStack()
+                            }
+                        )
 
                     }
                 }
 
             }
         }
-    }}
+    }
+}
 

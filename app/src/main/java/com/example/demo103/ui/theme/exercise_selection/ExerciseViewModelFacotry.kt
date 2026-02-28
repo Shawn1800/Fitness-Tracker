@@ -17,5 +17,4 @@ class ExerciseViewModelFactory (
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }
