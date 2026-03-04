@@ -11,7 +11,4 @@ data class HomeState (
     val errorMessage: String? = null,
     val workouts: List<WorkoutWithExercise> = emptyList(),
 
-
-    val workoutExerciseNoDb :List<WorkoutExerciseUi> = emptyList(), // workout car while editing
-    val isSavingNoDb : Boolean = false,
 )

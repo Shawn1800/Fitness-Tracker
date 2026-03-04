@@ -16,8 +16,9 @@ import kotlinx.coroutines.launch
 @Database(entities =
     [ExerciseEntity::class,
     WorkoutEntryEntity::class],
-    version = 1,
-    exportSchema = true)
+    version = 2,
+    exportSchema = false,
+)
 
 abstract class ExerciseDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
@@ -57,5 +58,6 @@ abstract class ExerciseDatabase : RoomDatabase() {
         }
     }
 }
+
 
 

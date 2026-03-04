@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.demo103.data.repository.WorkoutRepository
 
-class WorkoutViewModelFactory (
+class LogWorkoutViewModelFactory (
     private val repository: WorkoutRepository
 ): ViewModelProvider.Factory
 {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(WorkoutViewModel::class.java)) {
+            if (modelClass.isAssignableFrom(LogWorkoutViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return WorkoutViewModel(repository) as T
+                return LogWorkoutViewModel(repository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

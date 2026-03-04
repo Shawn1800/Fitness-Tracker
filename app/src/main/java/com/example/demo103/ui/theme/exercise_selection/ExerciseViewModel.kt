@@ -3,6 +3,7 @@ package com.example.demo103.ui.theme.exercise_selection
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.demo103.data.repository.ExerciseRepository
+import com.example.demo103.ui.theme.log_workout.LogWorkoutUiEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,6 +49,7 @@ class ExerciseViewModel(
             query.isNotBlank() && category != null -> repository.searchExerciseByCategory(query, category)
             query.isNotBlank() -> repository.searchExercises(query)
             category != null -> repository.getExerciseByCategory(category)
+
             else -> repository.getAllExercises()
         }
         flow.onEach { _isSearching.value = false }
@@ -84,10 +86,11 @@ class ExerciseViewModel(
             is ExerciseEvent.OnClearCategory -> {
                 _selectedCategory.value = null //value of the state becomes null
             }
-            // when i press onclick this runs
-            is ExerciseEvent.OnAddExercise->{
+//             when i press onclick this runs
+            is ExerciseEvent.OnAddExercise-> {
                 viewModelScope.launch {
-                    _uiEvent.emit(ExerciseUiEvent.AddExercise( exercise=event.exercise)
+                    _uiEvent.emit(
+                        ExerciseUiEvent.AddExercise(exercise = event.exercise)
                     )
                 }
             }

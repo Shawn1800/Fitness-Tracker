@@ -67,25 +67,30 @@ fun ExerciseSelectionScreen(
             event ->
             when(event){
                 is ExerciseUiEvent.AddExercise->{
-                    homeViewModel.addExerciseToWorkout(exercise=event.exercise)
+                    homeViewModel.addExerciseToHome(exercise=event.exercise)
                     navController()
                 }
-                ExerciseUiEvent.NavigateBack -> {
+                is ExerciseUiEvent.NavigateBack -> {
                     navController()
                 }
+//                is ExerciseUiEvent.OnTapExerciseAfterSearch ->{
+//
+//                }
+
             }
         }
     }
 
     ExerciseSelectionContent(
         state = state,
-        onEvent = viewModel::onEvent
+        onEvent = {event -> viewModel.onEvent(event)} // onEvent = viewmodel::onEvent both are same
+    // this type of event dec;aration is used when viewModel requied event just like how it is no mods but it homescreen it uses mods lika a wrapper to modify data cause their viewmodel required mddded data
     )
 }
 @Composable
 fun ExerciseSelectionContent(
     state: ExerciseState,
-    onEvent: (ExerciseEvent) -> Unit
+    onEvent: (ExerciseEvent) -> Unit //give me ExerciseEvent ill porcess it , nothing comes back
 ) {
     Search(
         query = state.searchQuery,
@@ -112,7 +117,7 @@ fun Search(
     selectedCategory: String?,
     isSearching: Boolean,
     exercises: List<ExerciseEntity>,
-    onQueryChange: (String) -> Unit,
+    onQueryChange: (String) -> Unit,  // porcess the string return nothing
     onCategorySelected: (String) -> Unit,
     onCategoryCleared: () -> Unit,
     onAddExercise: (ExerciseEntity) -> Unit

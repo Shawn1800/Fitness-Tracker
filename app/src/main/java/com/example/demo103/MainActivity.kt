@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,6 +18,9 @@ import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModelFactory
 import com.example.demo103.ui.theme.home.HomeScreen
 import com.example.demo103.ui.theme.home.HomeViewModel
 import com.example.demo103.ui.theme.home.HomeViewModelFactory
+import com.example.demo103.ui.theme.log_workout.LogWorkoutScreen
+import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModel
+import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModelFactory
 import com.example.demo103.ui.theme.theme.Demo103Theme
 
 class MainActivity : ComponentActivity() {
@@ -41,11 +45,17 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
+                val logWorkoutViewModel: LogWorkoutViewModel =viewModel (
+                    factory = LogWorkoutViewModelFactory(
+                        app.appContainer.workoutRepository
+                    )
+                )
+
                 NavHost(
                     navController = navController,
                     startDestination = "home"
                 ) {
-
+                    //HomeScreen
                     composable("home") {
                         HomeScreen(
                             homeViewModel = homeViewModel,
@@ -54,7 +64,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-
+                    //ExerciseScreen
                     composable("exercise_selection") {
                         val viewModel: ExerciseViewModel = viewModel(
                             factory = ExerciseViewModelFactory(
@@ -70,6 +80,22 @@ class MainActivity : ComponentActivity() {
                         )
 
                     }
+                    //LogWorkoutScreen
+                    composable("log_workout_screen"){
+
+                        LogWorkoutScreen(
+                            logWorkoutViewModel = logWorkoutViewModel,
+                            OnNavBackToHome ={
+                                navController.navigate("home")
+                            }
+
+                        )
+                    }
+
+
+
+
+
                 }
 
             }

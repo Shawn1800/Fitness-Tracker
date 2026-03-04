@@ -1,5 +1,6 @@
 package com.example.demo103.data.dao
 
+import android.adservices.adid.AdId
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -22,7 +23,10 @@ interface WorkoutEntryEntityDao{
 
     @Query("SELECT * FROM workout_entry WHERE exercise_id = :exerciseId")
     fun getWorkoutByExercise(exerciseId: Int): Flow<List<WorkoutEntryEntity>>
-    @Query("DELETE  FROM workout_entry WHERE entryId=:id")
-    suspend fun deleteEntryById(id:Int)
+
+//    @Query("DELETE  FROM workout_entry WHERE entryId=:id")
+//    suspend fun deleteEntryById(id:Int)
+    @Query("DELETE  FROM workout_entry WHERE entryId = :entryId")
+    suspend fun deleteSetById(entryId:Int)
 
 }

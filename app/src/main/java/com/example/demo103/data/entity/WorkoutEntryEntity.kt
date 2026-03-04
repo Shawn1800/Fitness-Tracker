@@ -32,6 +32,9 @@ data class WorkoutEntryEntity(
     val reps : Int,
 
     @ColumnInfo("date")
-    val date  : Long
+    val date  : Long,
+
+    @ColumnInfo("sets")
+    val sets : Int
 
 )

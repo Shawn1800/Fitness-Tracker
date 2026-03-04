@@ -15,4 +15,5 @@ data class ExerciseEntity(
 
     @ColumnInfo(name="category")
     val category:String //chest ,legs,
+
 )

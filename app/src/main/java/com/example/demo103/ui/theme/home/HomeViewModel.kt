@@ -56,89 +56,12 @@ class HomeViewModel(
                 }       //suspend is about how code executes
                 // Scope is about how long code is allowed to live
             }
-
-            is HomeEvent.OnExerciseAdd -> {
-                _state.update { state ->
-                    if (state.workoutExerciseNoDb.any {
-                            it.exercise.exerciseId == event.exercise.exerciseId //check if exercise already exits //it contains workoutExerciseUI the data entity
-                        }) state // if duplicate found do nothing
-                    else state.copy( // else create a copy to up[date state
-                        workoutExerciseNoDb = state.workoutExerciseNoDb +
-                                WorkoutExerciseUi(event.exercise) //add the new exercise to the workout
-                    )
-                }
-            }
-
-            is HomeEvent.OnSetValueChange -> {
-                _state.update { state ->
-                    state.copy(
-                        workoutExerciseNoDb = state.workoutExerciseNoDb.map { we ->
-                            if (we.exercise.exerciseId == event.exerciseId) {
-                                we.copy(
-                                    sets = we.sets.mapIndexed { index, set ->
-                                        if (index == event.setIndex)
-                                            set.copy(
-                                                weight = event.weight,
-                                                reps = event.reps
-                                            )
-                                        else set
-                                    }
-                                )
-                            } else we
-                        }
-                    )
-                }
-            }
-
-            is HomeEvent.OnAddSet -> {
-                _state.update { state ->
-                    state.copy(
-                        workoutExerciseNoDb = state.workoutExerciseNoDb.map { we ->
-                            if (we.exercise.exerciseId == event.exerciseId)
-                                we.copy(sets = we.sets + WorkoutSetUi())
-                            else we
-                        }
-                    )
-                }
-            }
-
-            is HomeEvent.OnSaveWorkoutClick -> {
-                val dateMillis = state.value.selectedDateMillis ?: return
-
-                //  Tell UI: saving started
-                _state.update { it.copy(isSavingNoDb = true) }
-
-                viewModelScope.launch {
-                    state.value.workoutExerciseNoDb.forEach { we ->
-                        we.sets
-                            .filter { it.weight > 0 && it.reps > 0 }
-                            .forEach { set ->
-                            repository.insertWorkoutEntry(
-                                WorkoutEntryEntity(
-                                    exerciseId = we.exercise.exerciseId,
-                                    weight = set.weight,
-                                    reps = set.reps,
-                                    date = dateMillis
-                                )
-                            )
-                        }
-                    }
-                }
-                // Clear editing state + stop loading
-                _state.update {
-                    it.copy(
-                        workoutExerciseNoDb = emptyList(),
-                        isSavingNoDb = false
-                    )
-                }
-            }
         }
-
 
     }
 
 
-    fun addExerciseToWorkout(exercise: ExerciseEntity) {
+    fun addExerciseToHome(exercise: ExerciseEntity) {
         val dateMillis = state.value.selectedDateMillis ?: return
         viewModelScope.launch {
             repository.insertWorkoutEntry(
@@ -147,6 +70,7 @@ class HomeViewModel(
                     weight = 0.0,
                     reps = 0,
                     date = dateMillis,
+                    sets = 1
                 )
             )
         }

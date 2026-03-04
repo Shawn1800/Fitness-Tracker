@@ -50,16 +50,6 @@ private object AppColors {
 
 }
 
-data class WorkoutExerciseUi(
-    val exercise: ExerciseEntity,
-    val isExpanded: Boolean = false,
-    val sets: List<WorkoutSetUi> = listOf(WorkoutSetUi())
-)
-
-data class WorkoutSetUi(
-    val weight: Double=0.0,
-    val reps: Int =0
-)
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 @Composable

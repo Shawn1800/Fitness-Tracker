@@ -7,8 +7,6 @@ sealed interface ExerciseUiEvent {
     data class  AddExercise(val exercise: ExerciseEntity): ExerciseUiEvent
     object NavigateBack: ExerciseUiEvent
 
-//    data class ExerciseSelected(
-//        val exercise: ExerciseEntity
-//    ) : ExerciseUiEvent
+//    data class OnClickExerciseOnSearch(val exercise: ExerciseEntity): ExerciseUiEvent
 
 }
