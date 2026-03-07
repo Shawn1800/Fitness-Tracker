@@ -1,9 +1,7 @@
 package com.example.demo103.data.db
 
 import android.content.Context
-import androidx.room.Database
 import androidx.room.Room
-import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.entity.WorkoutEntryEntity
@@ -12,12 +10,13 @@ import com.example.demo103.data.dao.WorkoutEntryEntityDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.room.Database
+import androidx.room.RoomDatabase
 
-@Database(entities =
-    [ExerciseEntity::class,
-    WorkoutEntryEntity::class],
+@Database(
+    entities = [ExerciseEntity::class, WorkoutEntryEntity::class],
     version = 2,
-    exportSchema = false,
+    exportSchema = false
 )
 
 abstract class ExerciseDatabase : RoomDatabase() {
@@ -42,7 +41,7 @@ abstract class ExerciseDatabase : RoomDatabase() {
                     ExerciseDatabase::class.java,
                     "exercise_db"
                 )
-                    .addCallback(object : RoomDatabase.Callback() {
+                    .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             INSTANCE?.let { database ->

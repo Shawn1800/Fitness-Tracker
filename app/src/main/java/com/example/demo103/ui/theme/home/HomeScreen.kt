@@ -31,6 +31,7 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.entity.WorkoutEntryEntity
@@ -213,7 +214,12 @@ private fun DateItem(
     isFuture: Boolean,
     onDateSelected: (LocalDate) -> Unit
 ) {
-    val dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val configuration = LocalConfiguration.current
+    val locale = configuration.locales[0]
+
+    val dayName = date.dayOfWeek.getDisplayName(
+        TextStyle.SHORT,locale)
+
     val dayNumber = date.dayOfMonth.toString()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -250,6 +256,16 @@ private fun DateItem(
     }
 }
 // ─── FAB ──────────────────────────────────────────────────────────────────────
+//
+//@Composable
+//private fun AddWorkoutFab(onClick: ()->Unit) {
+//    FloatingActionButton(
+//        onClick = onClick,
+//        containerColor = AppColors.Primary
+//    ) {
+//        Text("+", fontSize = 24.sp, color = AppColors.TextPrimary)
+//    }
+//}
 
 @Composable
 private fun AddWorkoutFab(onClick: ()->Unit) {
@@ -260,6 +276,9 @@ private fun AddWorkoutFab(onClick: ()->Unit) {
         Text("+", fontSize = 24.sp, color = AppColors.TextPrimary)
     }
 }
+
+
+
 // ─── Workout List ─────────────────────────────────────────────────────────────
 @Composable
 fun WorkoutList(

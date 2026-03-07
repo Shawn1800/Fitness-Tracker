@@ -5,20 +5,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
+import com.example.demo103.data.db.ExerciseDatabase
+import com.example.demo103.data.repository.ExerciseRepository
+import com.example.demo103.data.repository.WorkoutRepository
 import com.example.demo103.di.Demo103App
+import com.example.demo103.navigation.Route
 import com.example.demo103.ui.theme.exercise_selection.ExerciseSelectionScreen
 import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModel
 import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModelFactory
 import com.example.demo103.ui.theme.home.HomeScreen
 import com.example.demo103.ui.theme.home.HomeViewModel
 import com.example.demo103.ui.theme.home.HomeViewModelFactory
-import com.example.demo103.ui.theme.log_workout.LogWorkoutScreen
 import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModel
 import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModelFactory
 import com.example.demo103.ui.theme.theme.Demo103Theme
@@ -36,70 +40,62 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Demo103Theme {
-
-                val navController = rememberNavController()
-
-                val homeViewModel: HomeViewModel = viewModel(
-                    factory = HomeViewModelFactory(
-                        app.appContainer.workoutRepository
-                    )
-                )
-
-                val logWorkoutViewModel: LogWorkoutViewModel =viewModel (
-                    factory = LogWorkoutViewModelFactory(
-                        app.appContainer.workoutRepository
-                    )
-                )
-
-                NavHost(
-                    navController = navController,
-                    startDestination = "home"
-                ) {
-                    //HomeScreen
-                    composable("home") {
-                        HomeScreen(
-                            homeViewModel = homeViewModel,
-                            onNavigateToExerciseSelection = {
-                                navController.navigate("exercise_selection")
-                            }
-                        )
-                    }
-                    //ExerciseScreen
-                    composable("exercise_selection") {
-                        val viewModel: ExerciseViewModel = viewModel(
-                            factory = ExerciseViewModelFactory(
-                                app.appContainer.exerciseRepository
-                            )
-                        )
-                        ExerciseSelectionScreen(
-                            viewModel = viewModel,
-                            homeViewModel = homeViewModel,
-                            navController = {
-                                navController.popBackStack()
-                            }
-                        )
-
-                    }
-                    //LogWorkoutScreen
-                    composable("log_workout_screen"){
-
-                        LogWorkoutScreen(
-                            logWorkoutViewModel = logWorkoutViewModel,
-                            OnNavBackToHome ={
-                                navController.navigate("home")
-                            }
-
-                        )
-                    }
-
-
-
-
-
-                }
-
+                MainNavigation()
             }
         }
     }
+}
+
+@Composable
+fun MainNavigation() {
+    val context = LocalContext.current
+    val db = ExerciseDatabase.getInstance(context)
+
+    val workoutRepository = WorkoutRepository(db.workoutEntryEntityDao())
+    val exerciseRepository = ExerciseRepository(
+        db.exerciseDao(),
+        workoutEntryEntityDao = db.workoutEntryEntityDao()
+    )
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(workoutRepository)
+    )
+
+    val exerciseViewModel: ExerciseViewModel = viewModel(
+        factory = ExerciseViewModelFactory(exerciseRepository)
+    )
+
+    val logWorkoutViewModel: LogWorkoutViewModel= viewModel(
+        factory = LogWorkoutViewModelFactory(workoutRepository)
+    )
+
+
+//val backStack = rememberNavBackStack <Route> (Route.HomeScreen)
+    val backStack = remember { mutableStateListOf<Route>(Route.HomeScreen) }
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = {
+            backStack.removeLastOrNull()
+                 },
+        entryProvider = { key ->
+            when (key) {
+                is Route.HomeScreen -> NavEntry(key) {
+                    HomeScreen(
+                        homeViewModel = homeViewModel,
+                        onNavigateToExerciseSelection = {
+                            backStack.add(Route.ExerciseScreen)
+                        }
+                    )
+                }
+                is Route.ExerciseScreen -> NavEntry(key) {
+                    ExerciseSelectionScreen(
+                        homeViewModel = homeViewModel,
+                        onBack = { backStack.removeLastOrNull() }
+                    )
+                }
+            }
+        }
+    )
 }
 

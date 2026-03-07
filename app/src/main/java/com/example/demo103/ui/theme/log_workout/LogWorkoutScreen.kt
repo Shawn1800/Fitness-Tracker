@@ -48,7 +48,6 @@ fun LogWorkoutScreen (
                     snackbarHostState.showSnackbar(event.message)
                 }
 
-                LogWorkoutUiEvent.NavToLogScreen -> TODO()
             }
 
         }

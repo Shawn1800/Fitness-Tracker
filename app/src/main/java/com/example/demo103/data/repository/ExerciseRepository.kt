@@ -2,10 +2,12 @@ package com.example.demo103.data.repository
 
 import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.dao.ExerciseDao
+import com.example.demo103.data.dao.WorkoutEntryEntityDao
 import kotlinx.coroutines.flow.Flow
 
 class ExerciseRepository(
-    private val exerciseDao: ExerciseDao
+    private val exerciseDao: ExerciseDao,
+    workoutEntryEntityDao: WorkoutEntryEntityDao
 ) {
 
 

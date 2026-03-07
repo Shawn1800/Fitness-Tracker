@@ -1,6 +1,5 @@
 package com.example.demo103.data.dao
 
-import android.adservices.adid.AdId
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy

@@ -1,5 +1,6 @@
 package com.example.demo103.ui.theme.exercise_selection
 
+import android.R.attr.onClick
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,13 +34,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode.Companion.Screen
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.entity.WorkoutEntryEntity
 import com.example.demo103.di.Demo103App
@@ -58,7 +60,7 @@ private object AppColors {
 fun ExerciseSelectionScreen(
     viewModel: ExerciseViewModel = viewModel(),
     homeViewModel: HomeViewModel,
-    navController:() -> Unit
+    onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -68,14 +70,11 @@ fun ExerciseSelectionScreen(
             when(event){
                 is ExerciseUiEvent.AddExercise->{
                     homeViewModel.addExerciseToHome(exercise=event.exercise)
-                    navController()
+                    onBack() // this is to go back to the previous screen
                 }
                 is ExerciseUiEvent.NavigateBack -> {
-                    navController()
+                    onBack
                 }
-//                is ExerciseUiEvent.OnTapExerciseAfterSearch ->{
-//
-//                }
 
             }
         }
@@ -223,7 +222,7 @@ private fun ExerciseItem(
                     fontSize = 13.sp
                 )
             }
-            // Right: add button
+
             IconButton(onClick = onClickExercise){
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -231,6 +230,7 @@ private fun ExerciseItem(
                     tint = AppColors.Primary
                 )
             }
+
         }
     }
 }

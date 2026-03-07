@@ -19,7 +19,10 @@ class AppContainer (context: Context){
     val exerciseDao : ExerciseDao = database.exerciseDao()
     val workoutDao: WorkoutEntryEntityDao = database.workoutEntryEntityDao()
 
-    val exerciseRepository= ExerciseRepository(exerciseDao)
+    val exerciseRepository= ExerciseRepository(
+        exerciseDao,
+        ExerciseDatabase.getInstance(context).workoutEntryEntityDao()
+    )
     val workoutRepository = WorkoutRepository(workoutDao)
 
 }
