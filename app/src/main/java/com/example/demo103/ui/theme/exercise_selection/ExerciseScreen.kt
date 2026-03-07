@@ -59,7 +59,7 @@ private object AppColors {
 @Composable
 fun ExerciseSelectionScreen(
     viewModel: ExerciseViewModel = viewModel(),
-    homeViewModel: HomeViewModel,
+    onNavigateToLogWorkout :(ExerciseEntity) ->Unit,
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -69,10 +69,9 @@ fun ExerciseSelectionScreen(
             event ->
             when(event){
                 is ExerciseUiEvent.AddExercise->{
-                    homeViewModel.addExerciseToHome(exercise=event.exercise)
-                    onBack() // this is to go back to the previous screen
+                   onNavigateToLogWorkout(event.exercise)  // navigate to log workout screen with the selected exercise
                 }
-                is ExerciseUiEvent.NavigateBack -> {
+                is ExerciseUiEvent.NavigateBack -> { //make this navback to exerciselection Screen
                     onBack
                 }
 

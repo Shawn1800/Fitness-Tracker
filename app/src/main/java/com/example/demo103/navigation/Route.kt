@@ -1,6 +1,7 @@
 package com.example.demo103.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.example.demo103.data.entity.ExerciseEntity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 
@@ -12,6 +13,9 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object ExerciseScreen : Route , NavKey
+
+    @Serializable
+    data class LogWorkoutScreen (val exercise: ExerciseEntity) : Route , NavKey
 
 
 }

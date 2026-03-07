@@ -1,5 +1,4 @@
 
-import org.apache.tools.ant.util.JavaEnvUtils.VERSION_11
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -48,6 +47,12 @@ android {
         compose = true
     }
     buildToolsVersion = "35.0.0"
+
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.concurrent:concurrent-futures:1.2.0")
+        }
+    }
 }
 
 dependencies {
@@ -68,7 +73,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
     val room_version = "2.8.4"
     implementation("androidx.room:room-ktx:$room_version")
     implementation("androidx.room:room-runtime:$room_version")

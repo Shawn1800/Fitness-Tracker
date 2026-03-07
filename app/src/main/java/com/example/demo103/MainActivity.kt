@@ -10,9 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.demo103.data.db.ExerciseDatabase
+import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.repository.ExerciseRepository
 import com.example.demo103.data.repository.WorkoutRepository
 import com.example.demo103.di.Demo103App
@@ -23,6 +25,7 @@ import com.example.demo103.ui.theme.exercise_selection.ExerciseViewModelFactory
 import com.example.demo103.ui.theme.home.HomeScreen
 import com.example.demo103.ui.theme.home.HomeViewModel
 import com.example.demo103.ui.theme.home.HomeViewModelFactory
+import com.example.demo103.ui.theme.log_workout.LogWorkoutScreen
 import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModel
 import com.example.demo103.ui.theme.log_workout.LogWorkoutViewModelFactory
 import com.example.demo103.ui.theme.theme.Demo103Theme
@@ -78,9 +81,8 @@ fun MainNavigation() {
         onBack = {
             backStack.removeLastOrNull()
                  },
-        entryProvider = { key ->
-            when (key) {
-                is Route.HomeScreen -> NavEntry(key) {
+        entryProvider = entryProvider {
+            entry<Route.HomeScreen>{
                     HomeScreen(
                         homeViewModel = homeViewModel,
                         onNavigateToExerciseSelection = {
@@ -88,14 +90,30 @@ fun MainNavigation() {
                         }
                     )
                 }
-                is Route.ExerciseScreen -> NavEntry(key) {
-                    ExerciseSelectionScreen(
-                        homeViewModel = homeViewModel,
-                        onBack = { backStack.removeLastOrNull() }
-                    )
-                }
+
+            entry<Route.ExerciseScreen> {
+                ExerciseSelectionScreen(
+                    viewModel = exerciseViewModel,
+                    onNavigateToLogWorkout = { exercise ->
+                        backStack.add(Route.LogWorkoutScreen(exercise))  // pass exercise
+                    } ,
+                    onBack = { backStack.removeLastOrNull() },
+                )
+            }
+
+            entry<Route.LogWorkoutScreen> { entry ->
+                LogWorkoutScreen(
+                    exercise = entry.exercise,
+                    logWorkoutViewModel = logWorkoutViewModel,
+                    onBack = {
+                        backStack.removeAll { it !is Route.HomeScreen }
+                    }
+
+                )
             }
         }
     )
 }
+
+
 

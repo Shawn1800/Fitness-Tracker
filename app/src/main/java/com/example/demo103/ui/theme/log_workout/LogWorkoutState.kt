@@ -1,5 +1,6 @@
 package com.example.demo103.ui.theme.log_workout
 
+import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.entity.WorkoutEntryEntity
 import com.example.demo103.data.entity.WorkoutWithExercise
 
@@ -9,4 +10,5 @@ data class LogWorkoutState (
    val selectedExerciseId:Int?=null,
 //   val isLoading: Boolean=false,
    val sets:List<WorkoutEntryEntity> = emptyList(),
+   val exercise : ExerciseEntity? = null
 )

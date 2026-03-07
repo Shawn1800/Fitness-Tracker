@@ -1,14 +1,10 @@
 package com.example.demo103.ui.theme.home
 
-import androidx.compose.ui.text.font.FontVariation.weight
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.demo103.data.entity.ExerciseEntity
-
 import com.example.demo103.data.entity.WorkoutEntryEntity
-
 import com.example.demo103.data.repository.WorkoutRepository
-import com.example.demo103.ui.theme.exercise_selection.ExerciseEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,12 +16,11 @@ class HomeViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()  //make it read only
-
     //SharedFlow is a hot flow that emits events to its collectors. It doesn't hold any values until a collector is attached, and it can be configured to replay a specific number of values to new collectors.
     private val _uiEvent =
         MutableSharedFlow<HomeUiEvent>() //shared flow does not hold state and reemit old values
     val uiEvent =
-        _uiEvent.asSharedFlow()  //shared flow doesnt replay old value unlike stateflow better suited for fire and forget events
+        _uiEvent.asSharedFlow()  //shared flow doesn't replay old value unlike stateflow better suited for fire and forget events
     private var workoutJob: Job? = null
 
     init {
@@ -57,7 +52,6 @@ class HomeViewModel(
                 // Scope is about how long code is allowed to live
             }
         }
-
     }
 
 

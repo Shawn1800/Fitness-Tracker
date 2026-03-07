@@ -1,5 +1,6 @@
 package com.example.demo103.ui.theme.log_workout
 
+import com.example.demo103.data.entity.ExerciseEntity
 import com.example.demo103.data.entity.WorkoutEntryEntity
 
 sealed interface LogWorkoutEvent {
@@ -8,6 +9,9 @@ sealed interface LogWorkoutEvent {
     data class UpdateReps (val setId:Int ,val reps : String): LogWorkoutEvent
     data class DeleteSet (val entryId : Int): LogWorkoutEvent
 
+    data class SetExercise (val exercise : ExerciseEntity) : LogWorkoutEvent
+
+    data object SaveWorkout : LogWorkoutEvent
 
 
 }

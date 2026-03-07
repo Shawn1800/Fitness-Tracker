@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.demo103.data.entity.ExerciseEntity
 
 
 private object AppColors {
@@ -25,26 +26,31 @@ private object AppColors {
     val Today = Color(0xFF311B92)
     val TextPrimary = Color.White
     val TextSecondary = Color.Gray
-
 }
 
 @Composable
-fun LogWorkoutScreen (
-    logWorkoutViewModel : LogWorkoutViewModel = viewModel(),
-    OnNavBackToHome : ()-> Unit,
+fun LogWorkoutScreen(
+    exercise: ExerciseEntity,
+    logWorkoutViewModel: LogWorkoutViewModel = viewModel(),
+    onBack: () -> Unit,
+    ) {
 
-    ){
+   LaunchedEffect(exercise) {
+       logWorkoutViewModel.onEvent(LogWorkoutEvent.SetExercise(exercise))
+   }
+
 
     val state by logWorkoutViewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit){
-        logWorkoutViewModel.uiEvent.collect {event ->
-            when(event){
-                is LogWorkoutUiEvent.NavBackToHome->{
-                    OnNavBackToHome()
+    LaunchedEffect(Unit) {
+        logWorkoutViewModel.uiEvent.collect { event ->
+            when (event) {
+                is LogWorkoutUiEvent.NavBackToHome -> {
+                    onBack()
                 }
-                is LogWorkoutUiEvent.SendSnackbar->{
+
+                is LogWorkoutUiEvent.SendSnackbar -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
 
@@ -58,30 +64,33 @@ fun LogWorkoutScreen (
         floatingActionButton = {
             SaveBttn(
                 onClick = {
-                    logWorkoutViewModel.onEvent(LogWorkoutUiEvent.SaveWorkout)
+                    logWorkoutViewModel.onEvent(LogWorkoutEvent.SaveWorkout)
                 }
             )
         }
     )
-    {paddingValues ->
+    { paddingValues ->
         LogWorkoutContent(
             state = state,
-            onEvent = {event -> logWorkoutViewModel.onEvent(event)} ,
+            onEvent = { event -> logWorkoutViewModel.onEvent(event) },
             modifier = Modifier.padding(paddingValues)
         )
     }
 }
+
 @Composable
 fun LogWorkoutContent(
-    state:LogWorkoutState,
-    onEvent:(LogWorkoutEvent) -> Unit,
+    state: LogWorkoutState,
+    onEvent: (LogWorkoutEvent) -> Unit,
     modifier: Modifier
-){
+) {
+
 
 }
+
 @Composable
 private fun SaveBttn(
-    onClick: ()->Unit
+    onClick: () -> Unit
 ) {
     FloatingActionButton(
         onClick = onClick,

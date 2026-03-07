@@ -1,5 +1,6 @@
 package com.example.demo103.ui.theme.log_workout
 
+import android.annotation.SuppressLint
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,7 @@ class LogWorkoutViewModel (
 
 
 
+
     fun onEvent(event: LogWorkoutEvent){
         when(event){
 
@@ -44,13 +46,13 @@ class LogWorkoutViewModel (
 
                     //create new set
                   val newEntry= WorkoutEntryEntity(
-                            exerciseId = event.exerciseId,
+                      exerciseId = _state.value.exercise?.exerciseId ?: return@launch,
                             weight = weight,
                             reps = reps,
                             sets = _state.value.sets.size + 1,
                             date = System.currentTimeMillis()
                         )
-                    //save save the set to  db
+                    // save the set to  db
                     repository.insertWorkoutEntry(newEntry)
 
                     _state.update {currentState-> //update the state
@@ -91,8 +93,14 @@ class LogWorkoutViewModel (
                     )
                 }
             }
+
+            is LogWorkoutEvent.SetExercise -> {
+                _state.update {
+                    it.copy(exercise = event.exercise) } // it here is the LogWorkoutState and we are copying the state and updating only the exercise field with the new exercise passed in the event
+            }
+
           //since we already saving data to db with each set we dont need to save data to db again here
-            is LogWorkoutUiEvent.SaveWorkout->{
+            is LogWorkoutEvent.SaveWorkout->{
                 viewModelScope.launch {
                     if (_state.value.sets.isEmpty()){
                         _uiEvent.emit(LogWorkoutUiEvent.SendSnackbar("Atleast add 1 set"))
